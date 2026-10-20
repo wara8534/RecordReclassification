@@ -42,6 +42,48 @@ mvn package
 java -jar target/record-reclassification-1.0.0.jar
 ```
 
+## Render 배포
+
+이 프로젝트는 Java 서버가 HTML·JavaScript·글꼴·서식을 함께 제공하는 **하나의 Docker Web Service**로 배포합니다. 프론트엔드 별도 배포나 API 주소 변경, CORS 설정은 필요하지 않습니다.
+
+1. `Dockerfile`, `.dockerignore`, `render.yaml`을 포함한 변경 사항을 GitHub `main`에 커밋·푸시합니다.
+2. [Render 대시보드](https://dashboard.render.com/)에서 로그인 후 **New → Blueprint**를 선택합니다.
+3. `wara8534/RecordReclassification` 저장소를 연결합니다. 비공개 저장소라면 Render에 해당 저장소 접근 권한을 부여합니다.
+4. 저장소 루트의 `render.yaml`을 확인하고 서비스를 생성합니다.
+5. 빌드·배포 로그가 성공하고 서비스가 Live 상태가 되면 Render가 표시하는 `https://…onrender.com` 주소로 접속합니다.
+
+수동으로 **New → Web Service**를 사용하는 경우 설정:
+
+| 항목 | 값 |
+| --- | --- |
+| 저장소 | `https://github.com/wara8534/RecordReclassification` |
+| Branch | `main` |
+| Language / Runtime | `Docker` |
+| Dockerfile Path | `./Dockerfile` |
+| Docker Build Context | `.` |
+| Health Check Path | `/api/health` |
+| 환경변수 | `SERVER_ADDRESS=0.0.0.0`, `PORT=10000`, `DEBUG=false` |
+| Build / Start Command | 별도 입력 없이 Dockerfile 사용 |
+
+Docker 빌드 단계에서 JDK 21과 Maven으로 테스트와 패키징을 실행합니다. 실행 이미지에는 JRE와 JAR만 포함하며 일반 사용자 권한으로 실행합니다. `.tools`, `.git`, `target`, 로컬 로그는 Docker 빌드에 전달하지 않습니다.
+
+`render.yaml`은 무료 플랜으로 명시되어 있습니다. 무료 인스턴스의 유휴 정지·메모리 제한 때문에 첫 접속이 느리거나 큰 엑셀 처리 시 메모리가 부족할 수 있습니다. 대량 파일·동시 접속 운영에는 실측 후 메모리가 더 큰 플랜을 선택하세요. 이 저장소에는 로그인 기능이 없으므로 배포한 URL은 공개 접근 서비스입니다. 실제 비공개 기록물을 운영하려면 별도의 접근제어가 필요합니다.
+
+외부 업로드 파일과 작업 결과를 디스크에 영구 저장하지 않으므로 DB·디스크 서비스는 만들지 않습니다. 원본과 화면 작업 상태는 브라우저 탭에 유지하며, 다운로드 요청 시 서버로 전송합니다.
+
+Docker가 설치된 PC에서는 다음과 같이 같은 이미지를 확인할 수 있습니다.
+
+```powershell
+docker build -t record-on .
+docker run --rm -p 127.0.0.1:8080:10000 --name record-on record-on
+```
+
+브라우저에서 `http://127.0.0.1:8080`을 열고, 종료할 때는 다른 터미널에서 `docker stop record-on`을 실행합니다. 기존 로컬 서버가 8080을 사용 중이면 먼저 종료하세요.
+
+로컬 `run.ps1`은 계속 `127.0.0.1:8080`으로 실행합니다. Docker/Render에서만 환경변수로 외부 바인딩과 포트를 지정합니다.
+
+참고: [Render Docker 배포](https://render.com/docs/docker), [Blueprint 설정](https://render.com/docs/blueprint-spec), [Web Service 포트](https://render.com/docs/web-services).
+
 ## 기능
 
 - 제공하신 `서식.xlsx` 원본 그대로 입력 양식 다운로드

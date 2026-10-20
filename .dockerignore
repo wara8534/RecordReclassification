@@ -1,0 +1,6 @@
+# Only source and build configuration belong in the build context.
+**
+!Dockerfile
+!pom.xml
+!src/
+!src/**

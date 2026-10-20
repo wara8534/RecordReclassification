@@ -25,6 +25,13 @@ class RecordsApplicationTest {
     @Autowired MockMvc mvc;
     @Autowired ObjectMapper mapper;
 
+    @Test void healthCheckIsAvailableForHosting() throws Exception {
+        mvc.perform(get("/api/health")).andExpect(status().isOk())
+            .andExpect(jsonPath("$.status").value("UP"))
+            .andExpect(jsonPath("$.service").value("record-on"))
+            .andExpect(header().string("Cache-Control", "no-store"));
+    }
+
     private RecordItem item(String title, String content, boolean reviewed) {
         return new RecordItem("001", title, "기록관리팀", "2025", content, "",
             "검토필요", reviewed ? "공개" : "검토필요", "검토 의견", reviewed, 2, "", "", "");
