@@ -1,0 +1,26 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "record-on",
+  "main": "cloudflare/worker.js",
+  "compatibility_date": "2026-10-21",
+  "workers_dev": true,
+  "containers": [
+    {
+      "class_name": "RecordOnContainer",
+      "image": "./Dockerfile",
+      "instance_type": "basic",
+      "max_instances": 1
+    }
+  ],
+  "durable_objects": {
+    "bindings": [
+      { "name": "RECORD_ON", "class_name": "RecordOnContainer" }
+    ]
+  },
+  "exports": {
+    "RecordOnContainer": {
+      "type": "durable-object",
+      "storage": "sqlite"
+    }
+  }
+}

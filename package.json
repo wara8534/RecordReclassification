@@ -1,0 +1,24 @@
+{
+  "name": "record-on-cloudflare",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "test": "node --test cloudflare/*.test.js",
+    "cloudflare:login": "wrangler login",
+    "cloudflare:whoami": "wrangler whoami",
+    "cloudflare:dev": "wrangler dev",
+    "cloudflare:deploy": "wrangler deploy",
+    "cloudflare:status": "wrangler containers list",
+    "cloudflare:logs": "wrangler tail"
+  },
+  "dependencies": {
+    "@cloudflare/containers": "0.3.7"
+  },
+  "devDependencies": {
+    "wrangler": "4.151.3"
+  },
+  "engines": {
+    "node": ">=22"
+  }
+}

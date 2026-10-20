@@ -42,7 +42,63 @@ mvn package
 java -jar target/record-reclassification-1.0.0.jar
 ```
 
-## Render 배포
+## Cloudflare 배포 (Java 서버 유지)
+
+Cloudflare **Workers + Containers**로 Java 서버와 웹페이지를 함께 배포합니다. `wrangler.jsonc`가 기존 Dockerfile을 사용하고 `cloudflare/worker.js`가 모든 페이지·API 요청을 Java 서버의 10000 포트로 전달합니다. Pages의 정적 사이트 업로드로는 이 Java 서버를 실행할 수 없습니다.
+
+**Workers Paid 계정이 필요합니다.** 기본 요금은 월 $5이며 Containers의 CPU·메모리·디스크·네트워크 사용량 등에 따라 추가 비용이 생길 수 있습니다. 설정은 `basic`(1 GiB 메모리), 최대 1개 컨테이너, 요청 없이 2분 경과 시 절전으로 지정했습니다. 최대 1개 설정이 요금 상한을 보장하는 것은 아닙니다. [공식 요금](https://developers.cloudflare.com/containers/platform/pricing/)
+
+### GitHub에서 배포 (PC에 Docker 설치 없이 가능)
+
+Cloudflare Workers Builds 환경에서 Dockerfile을 빌드할 수 있습니다. [공식 배포 문서](https://developers.cloudflare.com/containers/guides/deploy/)
+
+1. 이 변경 사항을 GitHub `main`에 올립니다.
+2. [Cloudflare 대시보드](https://dash.cloudflare.com/) → **Workers & Pages → Create application → GitHub 저장소 연결**에서 `wara8534/RecordReclassification`을 선택합니다. Workers 프로젝트로 생성하세요.
+3. 다음 값으로 빌드 설정을 지정합니다.
+
+| 설정 | 값 |
+| --- | --- |
+| Worker 이름 | `record-on` (`wrangler.jsonc`와 동일) |
+| 프로덕션 브랜치 | `main` |
+| 루트 디렉터리 | 저장소 루트 `/` |
+| Build command | `npm ci && npm test` |
+| Deploy command | `npm run cloudflare:deploy` |
+| 빌드 환경변수 | `NODE_VERSION=24` |
+
+4. 배포를 실행합니다. Docker 내부에서 Maven 테스트·JAR 빌드가 실행되며, Java 서버 이미지와 Worker가 함께 게시됩니다.
+5. 표시된 `https://record-on.<계정 서브도메인>.workers.dev` 주소로 접속합니다. 첫 배포 때 컨테이너 준비가 끝나기까지 시간이 걸릴 수 있습니다. `/api/health`에서 `status: UP`을 확인한 뒤 엑셀 업로드와 수동 결과 다운로드를 확인하세요.
+
+이 저장소에는 계정 ID·토큰이 들어 있지 않습니다. 대시보드의 GitHub 연결과 Workers Paid 설정은 본인 계정에서 수행하세요. 비프로덕션 브랜치의 `wrangler versions upload`만으로는 컨테이너 이미지가 갱신되지 않으므로 실제 서비스 배포는 프로덕션 `main`에서 실행합니다.
+
+### PC에서 CLI로 배포
+
+Node.js 22 이상, **Linux 컨테이너 모드로 실행 중인 Docker Desktop**, Cloudflare 로그인이 필요합니다.
+
+```powershell
+npm.cmd ci
+npm.cmd run cloudflare:login
+powershell -ExecutionPolicy Bypass -File .\deploy-cloudflare.ps1
+```
+
+로그인은 브라우저에서 본인 계정으로 완료합니다. API 토큰을 채팅이나 저장소 파일에 넣지 마세요. 여러 계정이 연결되어 있다면 사용할 계정을 선택합니다.
+
+```powershell
+npm.cmd run cloudflare:status
+npm.cmd run cloudflare:logs
+```
+
+설정·Worker 번들만 검사하고 외부에 배포하지 않으려면:
+
+```powershell
+npm.cmd test
+npm.cmd exec -- wrangler deploy --dry-run --containers-rollout=none --outdir .tools/cloudflare-worker
+```
+
+이 검사는 Docker 이미지 빌드·Java 컨테이너 기동을 검증하지 않습니다. 전체 배포에는 Docker 또는 위의 Workers Builds가 필요합니다. 로컬 통합 미리보기는 Docker를 켠 뒤 `npm.cmd run cloudflare:dev`로 실행합니다.
+
+컨테이너는 영구 저장소로 사용하지 않습니다. 브라우저에 유지한 원본과 결과를 요청마다 전송해 처리하므로 절전 후 다시 기동해도 다음 요청을 처리할 수 있습니다. 현재 공개 URL에는 로그인 기능이 없으며 외부 배포에서도 인증이 필요한 기록물은 별도 접근제어를 적용한 뒤 사용하세요.
+
+## Render 배포 (대안)
 
 이 프로젝트는 Java 서버가 HTML·JavaScript·글꼴·서식을 함께 제공하는 **하나의 Docker Web Service**로 배포합니다. 프론트엔드 별도 배포나 API 주소 변경, CORS 설정은 필요하지 않습니다.
 
