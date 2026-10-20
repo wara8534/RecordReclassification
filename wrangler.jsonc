@@ -2,7 +2,7 @@
   "$schema": "node_modules/wrangler/config-schema.json",
   "name": "record-on",
   "main": "cloudflare/worker.js",
-  "compatibility_date": "2026-10-21",
+  "compatibility_date": "2026-10-20",
   "workers_dev": true,
   "containers": [
     {
