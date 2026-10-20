@@ -1,0 +1,85 @@
+/* Bundled font: no external font requests are made when using the app. */
+@font-face {
+  font-family: "Pretendard";
+  src: url("/fonts/PretendardVariable.woff2") format("woff2");
+  font-weight: 100 900;
+  font-style: normal;
+  font-display: swap;
+}
+
+:root {
+  --font-ui: "Pretendard", "Malgun Gothic", "Apple SD Gothic Neo", sans-serif;
+  --muted: #5f727c;
+}
+
+body {
+  font-family: var(--font-ui);
+  font-size: 15px;
+  font-weight: 400;
+  line-height: 1.65;
+  letter-spacing: 0;
+  font-synthesis: none;
+}
+
+button, input, select, textarea { font-family: var(--font-ui); }
+.stat strong, td:first-child { font-family: var(--font-ui); }
+h1 { font-weight: 700; letter-spacing: -.5px; }
+h2, h3 { letter-spacing: -.2px; }
+.page-heading p, .upload-copy p { font-size: 14px; }
+.button, .page-heading .button, .nav-item { font-size: 13px; font-weight: 600; }
+.topbar, .filters input, .filters select, dialog input, dialog select, dialog textarea {
+  font-size: 14px;
+}
+
+.workflow { font-size: 13px; }
+.workflow > span, .workflow .current { font-weight: 600; }
+.workflow b { font-size: 11px; }
+.eyebrow, .section-kicker { font-size: 11px; letter-spacing: 1.2px; font-weight: 600; }
+.section-kicker { color: #607981; }
+.workspace-label { font-size: 11px; color: #a1b5be; }
+.sidebar-bottom, .sidebar-bottom small { font-size: 11px; }
+.sidebar-bottom small { color: #a1b5be; }
+
+.brand { letter-spacing: 1px; }
+.brand small { font-size: 8px; letter-spacing: .8px; }
+.brand-icon { display: grid; place-items: center; padding: 0; line-height: 0; }
+.brand-icon svg { display: block; width: 26px; height: 26px; }
+
+.dropzone strong { font-size: 15px; font-weight: 600; }
+.dropzone p, .dropzone small { font-size: 12px; color: #627981; }
+.stat > span { font-size: 13px; }
+.stat p, .stat small { font-size: 12px; color: #667b85; }
+.results-heading p { font-size: 13px; color: #667b85; }
+.results-heading h2 span { font-size: 12px; }
+.review-progress, .table-footer, .table-hint { font-size: 12px; color: #627782; }
+table, td:first-child { font-size: 13px; }
+thead { font-size: 12px; color: #536b77; }
+th { font-weight: 600; }
+.row-title { font-size: 14px; font-weight: 500; line-height: 1.6; }
+.row-dept { font-size: 12px; color: #657b85; }
+.badge, .review-state, .review-button { font-size: 12px; }
+.review-state { color: #697a85; }
+.badge.pending { color: #56657c; }
+.badge.partial { color: #8b611b; }
+.badge.private { color: #a3484d; }
+.badge.public { color: #1c715a; }
+
+.notice, .muted, dialog label, .content-box, .recommendation,
+.guide p, .guide strong, .policy-card p, .policy-notes { font-size: 14px; }
+.small, .rule-notice, .policy-card details, .note, footer { font-size: 12px; }
+.note, footer, .empty-state p { color: #647b86; }
+.empty-state h3 { font-size: 15px; }
+.empty-state p { font-size: 13px; }
+.text-button { font-size: 13px; }
+input::placeholder { color: #71818b; }
+
+@media (max-width: 800px) {
+  .brand-icon svg { width: 23px; height: 23px; }
+  .workflow { gap: 10px; }
+}
+
+@media (max-width: 480px) {
+  .filters input, .filters select, dialog input:not([type="checkbox"]),
+  dialog select, dialog textarea { font-size: 16px; }
+  .topbar, .user { font-size: 12px; }
+}
