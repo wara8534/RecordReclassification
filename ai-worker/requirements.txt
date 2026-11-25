@@ -1,0 +1,5 @@
+paddlepaddle==3.2.0
+paddleocr==3.2.0
+faster-whisper==1.2.1
+pypdfium2>=4.30,<6
+Pillow>=11,<13

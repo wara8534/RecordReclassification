@@ -7,6 +7,8 @@ import org.springframework.web.multipart.MaxUploadSizeExceededException;
 import org.springframework.http.converter.HttpMessageNotReadableException;
 import java.util.Map;
 
+import static kr.records.Models.MAX_RECORD_ROWS_LABEL;
+
 @RestControllerAdvice
 public class ApiExceptionHandler {
     @ExceptionHandler(IllegalArgumentException.class)
@@ -15,7 +17,8 @@ public class ApiExceptionHandler {
     }
     @ExceptionHandler({MethodArgumentNotValidException.class, HttpMessageNotReadableException.class})
     ResponseEntity<Map<String, String>> validation(Exception e) {
-        return ResponseEntity.badRequest().body(Map.of("message", "입력 형식 또는 길이가 올바르지 않습니다. 기록물은 5,000건까지 가능하며 분류 기준은 서버에서 고정 적용됩니다."));
+        return ResponseEntity.badRequest().body(Map.of("message", "입력 형식 또는 길이가 올바르지 않습니다. 기록물은 "
+            + MAX_RECORD_ROWS_LABEL + "건까지 가능하며 분류 기준은 서버에서 고정 적용됩니다."));
     }
     @ExceptionHandler(MaxUploadSizeExceededException.class)
     ResponseEntity<Map<String, String>> size(Exception e) {

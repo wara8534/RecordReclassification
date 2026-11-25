@@ -59,12 +59,19 @@ public class ClassificationService {
                 "제9조제2항: 기간 경과 등으로 비공개 필요성이 사라졌는지 확인합니다.",
                 "제9조제3항·제4항: 기관별 비공개 세부 기준의 수립·공개 및 정기 점검·개선 사항이 있습니다. 첨부본에 기관별 기준은 포함되어 있지 않습니다.",
                 "제6호·제7호 예외, 진행 상태, 침해 우려는 담당자가 원문으로 검토합니다. 탐지어는 구현상 보조 수단이며 법령 문구 자체가 아닙니다.",
-                "자동분류 결과를 공개여부·비공개사유·판단근거에 작성합니다. 관련 표현 미탐지 및 내용이 있는 행은 공개, 비공개 관련 표현이 탐지된 행은 비공개, 내용 부족·예외·기간 경과는 검토필요로 작성합니다. 법적 확정 판정은 아니며 부분공개는 별도 근거와 분리 가능성을 검토해 선택합니다."
+                "관련 표현 미탐지 및 내용이 있는 행은 공개, 비공개 관련 표현이 탐지된 행은 비공개로 추천합니다. 기존 공개구분과 추천이 다르면 변경 이유를 제시하고 담당자 검토를 기다립니다. 내용 부족·예외·기간 경과도 검토필요로 표시합니다. 부분공개는 별도 근거와 분리 가능성을 검토해 선택합니다."
             ));
     }
 
     public List<RecordItem> classify(ClassifyRequest request) {
         return request.records().stream().map(this::classifyRow).toList();
+    }
+
+    public List<RecordItem> awaitFullReview(ClassifyRequest request) {
+        return request.records().stream().map(row -> row.reviewed() ? row : new RecordItem(
+            row.id(), row.title(), row.department(), row.year(), row.content(), row.originalStatus(), "검토필요", "검토필요",
+            "등록 법령에 따른 전체 내용 검토를 기다리고 있습니다.", false, row.sourceRow(), row.category(), row.keywords(),
+            "", row.sourceSheet(), List.of(), "", row.sourceSequence(), row.parentFolderSequence(), row.itemSequence())).toList();
     }
 
     private RecordItem classifyRow(RecordItem row) {
@@ -87,20 +94,25 @@ public class ClassificationService {
         if (exception) reasons.add("예외 또는 절차 종료 관련 표현이 탐지되어 자동 비공개 추천을 보류합니다. 다른 조항의 해당 여부도 함께 확인해 주세요.");
         if (expired) reasons.add("제9조제2항: 비공개 필요성 소멸 관련 표현이 있습니다. 현재의 보호 필요성을 다시 확인해 주세요.");
         reasons.add("키워드만으로 법적 요건을 확정하지 않습니다. 제9조제2항의 기간 경과와 기관별 세부 기준을 확인한 후 최종 구분을 결정해 주세요.");
-        String reason = String.join("\n", reasons);
-        if (reason.length() > 2000) reason = reason.substring(0, 1950) + "\n일부 설명 생략: 분류 기준과 PDF 원문에서 전체 요건을 확인해 주세요.";
         boolean insufficient = row.content().isBlank();
         String recommendation = exception || expired || insufficient ? "검토필요"
             : matches.isEmpty() ? "공개" : "비공개";
-        if (insufficient) reason = "내용이 비어 있어 공개 여부를 결정할 자료가 부족합니다.\n" + reason;
+        boolean changed = disclosureChanged(row.originalStatus(), recommendation);
+        if (changed) reasons.add(0, "공개구분 변경 제안: " + row.originalStatus() + " → " + recommendation
+            + ". 아래 추천 근거를 확인하고 검토를 완료해 주세요.");
+        if (insufficient) reasons.add(0, "내용이 비어 있어 공개 여부를 결정할 자료가 부족합니다.");
+        String reason = String.join("\n", reasons);
         if (reason.length() > 2000) reason = reason.substring(0, 1997) + "...";
         String nonDisclosure = recommendation.equals("공개") ? ""
             : String.join("; ", matches.stream().map(c -> "제9조제1항제" + c.number() + "호 (" + c.title() + ")").toList());
         if (recommendation.equals("검토필요")) nonDisclosure = "확정 보류: 내용 부족 또는 예외·기간 경과 확인 필요"
             + (nonDisclosure.isEmpty() ? "" : " / 관련 조항: " + nonDisclosure);
         return new RecordItem(row.id(), row.title(), row.department(), row.year(), row.content(),
-            row.originalStatus(), recommendation, recommendation, reason, false,
-            row.sourceRow(), row.category(), row.keywords(), nonDisclosure);
+            row.originalStatus(), recommendation, changed ? "검토필요" : recommendation, reason, false,
+            row.sourceRow(), row.category(), row.keywords(), nonDisclosure, row.sourceSheet(),
+            row.sourceSheet() != null && recommendation.equals("비공개")
+                ? matches.stream().map(Criterion::number).toList() : List.of(), "", row.sourceSequence(),
+            row.parentFolderSequence(), row.itemSequence());
     }
 
     private String normalize(String value) {
