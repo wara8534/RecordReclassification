@@ -5,7 +5,6 @@ import jakarta.validation.constraints.*;
 import java.util.List;
 import java.util.Locale;
 import java.util.Set;
-import java.util.regex.Pattern;
 
 public final class Models {
     private Models() {}
@@ -13,7 +12,8 @@ public final class Models {
     public static final int MAX_RECORD_ROWS = 200_000;
     static final String MAX_RECORD_ROWS_LABEL = String.format(Locale.ROOT, "%,d", MAX_RECORD_ROWS);
     private static final Set<String> DISCLOSURE_DECISIONS = Set.of("공개", "부분공개", "비공개");
-    private static final Pattern STATUS_WHITESPACE = Pattern.compile("\\s+", Pattern.UNICODE_CHARACTER_CLASS);
+    private static final java.util.regex.Pattern STATUS_WHITESPACE =
+        java.util.regex.Pattern.compile("\\s+", java.util.regex.Pattern.UNICODE_CHARACTER_CLASS);
 
     static boolean disclosureChanged(String originalStatus, String proposedStatus) {
         if (!DISCLOSURE_DECISIONS.contains(proposedStatus)) return false;
